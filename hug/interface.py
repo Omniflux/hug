@@ -272,6 +272,9 @@ class Interface(object):
 
         return doc
 
+    def add_requires(self, requirements):
+        self.requires += (requirements, ) if not isinstance(requirements, (tuple, list)) else requirements
+
     def _rewrite_params(self, params):
         for interface_name, internal_name in self.map_params.items():
             if interface_name in params:

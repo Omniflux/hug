@@ -156,7 +156,7 @@ class HTTPInterfaceAPI(InterfaceAPI):
             placement = self._exception_handlers.setdefault(version, OrderedDict())
             placement[exception_type] = (error_handler, ) + placement.get(exception_type, tuple())
 
-    def extend(self, http_api, route="", base_url=""):
+    def extend(self, http_api, route="", base_url="", requires=()):
         """Adds handlers from a different Hug API to this one - to create a single API"""
         self.versions.update(http_api.versions)
         base_url = base_url or self.base_url
@@ -166,6 +166,7 @@ class HTTPInterfaceAPI(InterfaceAPI):
             for item_route, handler in routes.items():
                 for method, versions in handler.items():
                     for version, function in versions.items():
+                        function.add_requires (requires)
                         function.interface.api = self.api
                 self.routes[base_url][route + item_route] = handler
 
@@ -497,12 +498,12 @@ class API(object, metaclass=ModuleSingleton):
             self._context = {}
         return self._context
 
-    def extend(self, api, route="", base_url=""):
+    def extend(self, api, route="", base_url="", requires=()):
         """Adds handlers from a different Hug API to this one - to create a single API"""
         api = API(api)
 
         if hasattr(api, '_http'):
-            self.http.extend(api.http, route, base_url)
+            self.http.extend(api.http, route, base_url, requires)
 
         for directive in getattr(api, '_directives', {}).values():
             self.add_directive(directive)
